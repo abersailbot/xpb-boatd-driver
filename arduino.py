@@ -1,5 +1,6 @@
 from threading import Lock
 
+import json
 import serial
 import time
 
@@ -8,13 +9,16 @@ class Arduino(object):
     def __init__(self, port=None):
         try:
             self.port = serial.Serial(port)
-            self.port.open()
-        except Exception:
-            raise Exception('Cannot connect to arduino on %s' % port)
+        except Exception as e:
+            raise IOError('Cannot connect to arduino on {} - {}'.format(port, e))
         self._lock = Lock()
-        time.sleep(1)
+        self.read_json_line()
 
-    def _sendCommand(self, c):
+    def read_json_line(self):
+        with self._lock:
+            return json.loads(self.port.readline())
+
+    def send_command(self, c):
         '''
         Send a short command, and return a single line response. Prevents
         other threads interweaving requests by locking on self._lock
@@ -26,11 +30,9 @@ class Arduino(object):
 
     def get_compass(self):
         '''Get the heading from the compass'''
-        return int(float(self._sendCommand('c')))
+        return json.loads(self._sendCommand('c')).get('compass')
 
 if __name__ == '__main__':
     import time
-    a = Arduino() #create a test device on the arduino
-    time.sleep(2)
-    print a.set_rudder(0)
-
+    a = Arduino('/dev/arduino')
+    print a.get_compass()
