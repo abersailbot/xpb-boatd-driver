@@ -2,7 +2,6 @@ from threading import Lock
 
 import json
 import serial
-import time
 
 class Arduino(object):
     '''The arduino and basic communications with devices attached to it'''
