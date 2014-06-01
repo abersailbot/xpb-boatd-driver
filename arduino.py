@@ -15,6 +15,7 @@ class Arduino(object):
         self.port.readline()
 
     def read_json_line(self):
+        '''Return a decoded line'''
         with self._lock:
             return json.loads(self.port.readline())
 
@@ -29,13 +30,15 @@ class Arduino(object):
             return json.loads(self.port.readline())
 
     def get_compass(self):
-        '''Get the heading from the compass'''
+        '''Return the heading from the compass in degrees'''
         return self.send_command('c').get('compass')
 
     def set_rudder(self, amount):
+        '''Set the rudder to an amount between 1000 and 2000'''
         return self.send_command('r{}'.format(amount)).get('rudder')
 
     def set_sail(self, amount):
+        '''Set the sail to an amount between 1000 and 2000'''
         return self.send_command('s{}'.format(amount)).get('sail')
 
 if __name__ == '__main__':
