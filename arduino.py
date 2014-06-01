@@ -35,8 +35,12 @@ class Arduino(object):
     def set_rudder(self, amount):
         return self.send_command('r{}'.format(amount)).get('rudder')
 
+    def set_sail(self, amount):
+        return self.send_command('s{}'.format(amount)).get('sail')
+
 if __name__ == '__main__':
     import time
     a = Arduino('/dev/arduino')
     print a.get_compass()
     print a.set_rudder(2000)
+    print a.set_sail(1500)
