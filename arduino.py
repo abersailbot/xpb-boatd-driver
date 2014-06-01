@@ -12,7 +12,7 @@ class Arduino(object):
         except Exception as e:
             raise IOError('Cannot connect to arduino on {} - {}'.format(port, e))
         self._lock = Lock()
-        self.read_json_line()
+        self.port.readline()
 
     def read_json_line(self):
         with self._lock:
@@ -26,13 +26,17 @@ class Arduino(object):
         with self._lock:
             self.port.flushInput()
             self.port.write(c + '\n')
-            return self.port.readline()
+            return json.loads(self.port.readline())
 
     def get_compass(self):
         '''Get the heading from the compass'''
-        return json.loads(self._sendCommand('c')).get('compass')
+        return self.send_command('c').get('compass')
+
+    def set_rudder(self, amount):
+        return self.send_command('r{}'.format(amount)).get('rudder')
 
 if __name__ == '__main__':
     import time
     a = Arduino('/dev/arduino')
     print a.get_compass()
+    print a.set_rudder(2000)
