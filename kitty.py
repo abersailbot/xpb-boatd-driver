@@ -61,7 +61,9 @@ def kitty_wind():
 
 @driver.rudder
 def kitty_rudder(angle):
-    arduino.set_rudder(angle - 65)
+    ratio = (1711/22.5) / 8 # ratio of angle:microseconds
+    amount = 1500 + (angle * ratio)
+    arduino.set_rudder(amount - 65)
 
 @driver.sail
 def kitty_sail(angle):
@@ -71,5 +73,5 @@ if __name__ == '__main__':
     import time
     a = Arduino('/dev/arduino')
     print a.get_compass()
-    print a.set_rudder(2000)
-    print a.set_sail(1500)
+    print a.set_rudder(0)
+    print a.set_sail(0)
