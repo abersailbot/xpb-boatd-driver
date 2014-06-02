@@ -59,6 +59,14 @@ def kitty_wind():
     rowind.update()
     return rowind.direction
 
+@driver.rudder
+def kitty_rudder(angle):
+    arduino.set_rudder(angle - 65)
+
+@driver.sail
+def kitty_sail(angle):
+    arduino.set_sail(angle)
+
 if __name__ == '__main__':
     import time
     a = Arduino('/dev/arduino')
