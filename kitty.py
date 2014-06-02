@@ -3,9 +3,10 @@ from threading import Lock
 import json
 import serial
 
+from rowind import Rowind
+
 import boatd
 assert boatd.VERSION == 1.1
-
 
 class Arduino(object):
     '''The arduino and basic communications with devices attached to it'''
@@ -46,9 +47,21 @@ class Arduino(object):
 
 
 driver = boatd.Driver()
-
 arduino = Arduino('/dev/arduino')
+rowind = Rowind('/dev/rowind')
 
 @driver.heading
 def kitty_heading():
     return arduino.get_compass()
+
+@driver.wind_direction
+def kitty_wind():
+    rowind.update()
+    return rowind.direction
+
+if __name__ == '__main__':
+    import time
+    a = Arduino('/dev/arduino')
+    print a.get_compass()
+    print a.set_rudder(2000)
+    print a.set_sail(1500)
