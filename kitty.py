@@ -66,10 +66,17 @@ def kitty_wind():
 def kitty_position():
     if(gps.waiting(timeout=2)):
         fix = gps.next()
-        if fix['class'] == 'TPV':
-            return (fix.lat, fix.lon)
-        else:
-            return (None, None)
+        i = 0
+        while fix['class'] != 'TPV' and i < 15:
+            if(gps.waiting(timeout=2)):
+                fix = gps.next()
+                i+=1
+            else:
+                return (None, None)
+        return (fix.lat, fix.lon)
+    else:
+        return (None, None)
+
 
 
 @driver.rudder
