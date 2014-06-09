@@ -53,6 +53,7 @@ arduino = Arduino('/dev/arduino')
 rowind = Rowind('/dev/rowind')
 gps = gpsd.gps(mode=gpsd.WATCH_ENABLE)
 
+
 @driver.heading
 def kitty_heading():
     return arduino.get_compass()
@@ -64,20 +65,20 @@ def kitty_wind():
 
 @driver.position
 def kitty_position():
-    if(gps.waiting(timeout=2)):
+    if gps.waiting(timeout=2):
         fix = gps.next()
         i = 0
         while fix['class'] != 'TPV' and i < 15:
-            if(gps.waiting(timeout=2)):
+            if gps.waiting(timeout=2):
                 fix = gps.next()
-                i+=1
+                i += 1
             else:
                 return (None, None)
+
         return (fix.lat, fix.lon)
+
     else:
         return (None, None)
-
-
 
 @driver.rudder
 def kitty_rudder(angle):
