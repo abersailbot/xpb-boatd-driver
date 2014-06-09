@@ -3,6 +3,8 @@ from threading import Lock
 import json
 import serial
 
+import gps as gpsd
+
 from rowind import Rowind
 
 import boatd
@@ -49,6 +51,8 @@ class Arduino(object):
 driver = boatd.Driver()
 arduino = Arduino('/dev/arduino')
 rowind = Rowind('/dev/rowind')
+gps = gpsd.gps(mode=gpsd.WATCH_ENABLE)
+
 
 @driver.heading
 def kitty_heading():
@@ -58,6 +62,23 @@ def kitty_heading():
 def kitty_wind():
     rowind.update()
     return rowind.direction
+
+@driver.position
+def kitty_position():
+    if gps.waiting(timeout=2):
+        fix = gps.next()
+        i = 0
+        while fix['class'] != 'TPV' and i < 15:
+            if gps.waiting(timeout=2):
+                fix = gps.next()
+                i += 1
+            else:
+                return (None, None)
+
+        return (fix.lat, fix.lon)
+
+    else:
+        return (None, None)
 
 @driver.rudder
 def kitty_rudder(angle):
