@@ -68,8 +68,8 @@ def kitty_position():
     if gps.waiting(timeout=2):
         fix = gps.next()
         i = 0
-        while fix['class'] != 'TPV' and i < 15:
-            if gps.waiting(timeout=2):
+        while fix['class'] != 'TPV':
+            if gps.waiting(timeout=2) and i < 15:
                 fix = gps.next()
                 i += 1
             else:
