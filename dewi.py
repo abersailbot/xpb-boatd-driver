@@ -38,6 +38,9 @@ class Arduino(object):
     def get_compass(self):
         '''Return the heading from the compass in degrees'''
         return self.send_command('c').get('compass')
+        
+    def get_wind(self)
+        return self.send_command('w').get('wind')
 
     def set_rudder(self, amount):
         '''Set the rudder to an amount between 1000 and 2000'''
@@ -50,7 +53,6 @@ class Arduino(object):
 
 driver = boatd.Driver()
 arduino = Arduino('/dev/arduino')
-rowind = Rowind('/dev/rowind')
 gps = gpsd.gps(mode=gpsd.WATCH_ENABLE)
 
 
@@ -60,8 +62,7 @@ def kitty_heading():
 
 @driver.wind_direction
 def kitty_wind():
-    rowind.update()
-    return rowind.direction
+    return arduino.get_wind()
 
 @driver.position
 def kitty_position():
@@ -94,5 +95,6 @@ if __name__ == '__main__':
     import time
     a = Arduino('/dev/arduino')
     print a.get_compass()
+    print a.get_wind()
     print a.set_rudder(0)
     print a.set_sail(0)
