@@ -5,18 +5,19 @@ import serial
 
 import gps as gpsd
 
-from rowind import Rowind
-
 import boatd
 assert boatd.VERSION == 1.1
 
+
 class Arduino(object):
     '''The arduino and basic communications with devices attached to it'''
+
     def __init__(self, port=None, baud=115200):
         try:
             self.port = serial.Serial(port, baudrate=baud)
         except Exception as e:
-            raise IOError('Cannot connect to arduino on {} - {}'.format(port, e))
+            raise IOError(
+                'Cannot connect to arduino on {} - {}'.format(port, e))
         self._lock = Lock()
         self.port.readline()
 
@@ -39,7 +40,7 @@ class Arduino(object):
         '''Return the heading from the compass in degrees'''
         return self.send_command('c').get('compass')
 
-    def get_wind(self)
+    def get_wind(self):
         return self.send_command('w').get('wind')
 
     def set_rudder(self, amount):
@@ -60,9 +61,11 @@ gps = gpsd.gps(mode=gpsd.WATCH_ENABLE)
 def kitty_heading():
     return arduino.get_compass()
 
+
 @driver.wind_direction
 def kitty_wind():
     return arduino.get_wind()
+
 
 @driver.position
 def kitty_position():
@@ -81,18 +84,19 @@ def kitty_position():
     else:
         return (None, None)
 
+
 @driver.rudder
 def kitty_rudder(angle):
-    ratio = (1711/22.5) / 8 # ratio of angle:microseconds
+    ratio = (1711/22.5) / 8  # ratio of angle:microseconds
     amount = 1500 + (angle * ratio)
     arduino.set_rudder(amount - 65)
+
 
 @driver.sail
 def kitty_sail(angle):
     arduino.set_sail(angle)
 
 if __name__ == '__main__':
-    import time
     a = Arduino('/dev/arduino')
     print a.get_compass()
     print a.get_wind()
