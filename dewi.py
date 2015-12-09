@@ -12,9 +12,9 @@ assert boatd.VERSION == 1.1
 
 class Arduino(object):
     '''The arduino and basic communications with devices attached to it'''
-    def __init__(self, port=None):
+    def __init__(self, port=None, baud=115200):
         try:
-            self.port = serial.Serial(port)
+            self.port = serial.Serial(port, baudrate=baud)
         except Exception as e:
             raise IOError('Cannot connect to arduino on {} - {}'.format(port, e))
         self._lock = Lock()
@@ -38,7 +38,7 @@ class Arduino(object):
     def get_compass(self):
         '''Return the heading from the compass in degrees'''
         return self.send_command('c').get('compass')
-        
+
     def get_wind(self)
         return self.send_command('w').get('wind')
 
