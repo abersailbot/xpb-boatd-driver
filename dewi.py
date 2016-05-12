@@ -6,7 +6,6 @@ import serial
 import gps as gpsd
 
 import boatd
-assert boatd.VERSION == 1.1
 
 
 class Arduino(object):
@@ -52,49 +51,48 @@ class Arduino(object):
         return self.send_command('s{}'.format(amount)).get('sail')
 
 
-driver = boatd.Driver()
-arduino = Arduino('/dev/arduino')
-gps = gpsd.gps(mode=gpsd.WATCH_ENABLE)
+class DewiDriver(boatd.DriverABC):
+    def __init__(self):
+        self.arduino = Arduino('/dev/arduino')
+        self.gps = gpsd.gps(mode=gpsd.WATCH_ENABLE)
+
+    def heading():
+        return self.arduino.get_compass()
+
+    def wind_direction(self):
+        return self.arduino.get_wind()
+
+    def wind_speed(self):
+        # dewi can't get the wind speed
+        pass
+
+    def position(self):
+        if self.gps.waiting(timeout=2):
+            fix = self.gps.next()
+            i = 0
+            while fix['class'] != 'TPV':
+                if self.gps.waiting(timeout=2) and i < 15:
+                    fix = self.gps.next()
+                    i += 1
+                else:
+                    return (None, None)
+
+            return (fix.lat, fix.lon)
+
+        else:
+            return (None, None)
+
+    def rudder(self, angle):
+        ratio = (1711/22.5) / 8  # ratio of angle:microseconds
+        amount = 1500 + (angle * ratio)
+        self.arduino.set_rudder(amount - 65)
+
+    def sail(self, angle):
+        self.arduino.set_sail(angle)
 
 
-@driver.heading
-def kitty_heading():
-    return arduino.get_compass()
+driver = DewiDriver()
 
-
-@driver.wind_direction
-def kitty_wind():
-    return arduino.get_wind()
-
-
-@driver.position
-def kitty_position():
-    if gps.waiting(timeout=2):
-        fix = gps.next()
-        i = 0
-        while fix['class'] != 'TPV':
-            if gps.waiting(timeout=2) and i < 15:
-                fix = gps.next()
-                i += 1
-            else:
-                return (None, None)
-
-        return (fix.lat, fix.lon)
-
-    else:
-        return (None, None)
-
-
-@driver.rudder
-def kitty_rudder(angle):
-    ratio = (1711/22.5) / 8  # ratio of angle:microseconds
-    amount = 1500 + (angle * ratio)
-    arduino.set_rudder(amount - 65)
-
-
-@driver.sail
-def kitty_sail(angle):
-    arduino.set_sail(angle)
 
 if __name__ == '__main__':
     a = Arduino('/dev/arduino')
