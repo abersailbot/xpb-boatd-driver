@@ -51,7 +51,7 @@ class Arduino(object):
         return self.send_command('s{}'.format(amount)).get('sail')
 
 
-class DewiDriver(boatd.DriverABC):
+class DewiDriver(boatd.BaseBoatdDriver):
     def __init__(self):
         self.arduino = Arduino('/dev/arduino')
         self.gps = gpsd.gps(mode=gpsd.WATCH_ENABLE)
