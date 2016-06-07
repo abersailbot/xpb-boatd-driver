@@ -46,18 +46,11 @@ class Arduino(object):
         '''Set the rudder to an amount between 1000 and 2000'''
         return self.send_command('r{}'.format(amount)).get('rudder')
 
-    def set_sail(self, angle):
+    def set_sail(self, amount):
         '''
         Set the sail to an amount between 1100 (fully out) and 2100 (fully in).
         '''
 
-        angle = abs(angle)
-        # 1000 is difference between the two extremes of winch inputs, 45 is
-        # the maximum angle the sail will move to when the winch is fully
-        # extended. 2100 is the winch value when the sail is full in.
-
-        # FIXME: this is kind of non-linear, so adjust for this at some point
-        amount = -angle*(1000/70) + 2100
         return self.send_command('s{}'.format(amount)).get('sail')
 
 
@@ -98,7 +91,14 @@ class DewiDriver(boatd.BaseBoatdDriver):
         self.arduino.set_rudder(amount - 65)
 
     def sail(self, angle):
-        self.arduino.set_sail(angle)
+        angle = abs(angle)
+        # 1000 is difference between the two extremes of winch inputs, 70 is
+        # the maximum angle the sail will move to when the winch is fully
+        # extended. 2100 is the winch value when the sail is full in.
+
+        # FIXME: this is kind of non-linear, so adjust for this at some point
+        amount = -angle*(1000/70) + 2100
+        self.arduino.set_sail(amount)
 
 
 driver = DewiDriver()
