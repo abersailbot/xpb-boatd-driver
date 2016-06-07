@@ -18,7 +18,7 @@ class Arduino(object):
             raise IOError(
                 'Cannot connect to arduino on {} - {}'.format(port, e))
         self._lock = Lock()
-        self.port.readline()
+        #self.port.readline()
 
     def read_json_line(self):
         '''Return a decoded line'''
@@ -46,8 +46,18 @@ class Arduino(object):
         '''Set the rudder to an amount between 1000 and 2000'''
         return self.send_command('r{}'.format(amount)).get('rudder')
 
-    def set_sail(self, amount):
-        '''Set the sail to an amount between 1000 and 2000'''
+    def set_sail(self, angle):
+        '''
+        Set the sail to an amount between 1100 (fully out) and 2100 (fully in).
+        '''
+
+        angle = abs(angle)
+        # 1000 is difference between the two extremes of winch inputs, 45 is
+        # the maximum angle the sail will move to when the winch is fully
+        # extended. 2100 is the winch value when the sail is full in.
+
+        # FIXME: this is kind of non-linear, so adjust for this at some point
+        amount = -angle*(1000/70) + 2100
         return self.send_command('s{}'.format(amount)).get('sail')
 
 
@@ -56,7 +66,7 @@ class DewiDriver(boatd.BaseBoatdDriver):
         self.arduino = Arduino('/dev/arduino')
         self.gps = gpsd.gps(mode=gpsd.WATCH_ENABLE)
 
-    def heading():
+    def heading(self):
         return self.arduino.get_compass()
 
     def wind_direction(self):
