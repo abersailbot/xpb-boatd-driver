@@ -7,6 +7,9 @@ import gps as gpsd
 
 import boatd
 
+winch_input_range = 1000
+max_sail_angle = 70
+winch_value_full_in = 2100
 
 class Arduino(object):
     '''The arduino and basic communications with devices attached to it'''
@@ -101,7 +104,7 @@ class DewiDriver(boatd.BaseBoatdDriver):
         # extended. 2100 is the winch value when the sail is full in.
 
         # FIXME: this is kind of non-linear, so adjust for this at some point
-        amount = -angle*(1000/70) + 2100
+        amount = -angle*(winch_input_range/max_sail_angle) + winch_value_full_in
         self.arduino.set_sail(amount)
 
 
