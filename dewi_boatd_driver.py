@@ -102,7 +102,8 @@ class DewiDriver(boatd.BaseBoatdDriver):
         # 1000 is difference between the two extremes of winch inputs, 70 is
         # the maximum angle the sail will move to when the winch is fully
         # extended. 2100 is the winch value when the sail is full in.
-
+        
+        # FIXME: angle of 0 cannot be reached, generally around 5 degrees, account for this
         # FIXME: this is kind of non-linear, so adjust for this at some point
         amount = -angle*(winch_input_range/max_sail_angle) + winch_value_full_in
         self.arduino.set_sail(amount)
