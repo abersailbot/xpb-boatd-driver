@@ -7,9 +7,10 @@ import gps as gpsd
 
 import boatd
 
-winch_input_range = 1000
+winch_input_range = winch_value_full_in - winch_value_full_out
 max_sail_angle = 70
 winch_value_full_in = 2000
+winch_value_full_out = 1100
 
 class Arduino(object):
     '''The arduino and basic communications with devices attached to it'''
