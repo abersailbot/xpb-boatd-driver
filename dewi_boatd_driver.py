@@ -21,7 +21,6 @@ class Arduino(object):
             raise IOError(
                 'Cannot connect to arduino on {} - {}'.format(port, e))
         self._lock = Lock()
-        self.port.readline()
 
     def read_json_line(self):
         '''Return a decoded line'''
