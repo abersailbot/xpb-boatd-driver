@@ -9,7 +9,7 @@ import boatd
 
 winch_input_range = 1000
 max_sail_angle = 70
-winch_value_full_in = 2100
+winch_value_full_in = 2000
 
 class Arduino(object):
     '''The arduino and basic communications with devices attached to it'''
