@@ -33,6 +33,12 @@ class Arduino(object):
         Send a short command, and return a single line response. Prevents
         other threads interweaving requests by locking on self._lock
         '''
+
+        # the input buffer on the arduino is limited in size, so try not to
+        # overflow it
+        if len(c) > 9:
+            raise 'arduino input line too long'
+
         with self._lock:
             self.port.flushInput()
             self.port.write(c + '\n')
