@@ -44,11 +44,15 @@ class Arduino(object):
 
     def set_rudder(self, amount):
         '''Set the rudder to an amount between 1000 and 2000'''
-        return self.send_command('r{}'.format(amount)).get('rudder')
+        # note: at the time of writing, the arduino only accepts six bytes so
+        # this must be converted to an int
+        return self.send_command('r{}'.format(int(amount))).get('rudder')
 
     def set_sail(self, amount):
         '''Set the sail to an amount between 1000 and 2000'''
-        return self.send_command('s{}'.format(amount)).get('sail')
+        # note: at the time of writing, the arduino only accepts six bytes so
+        # this must be converted to an int
+        return self.send_command('s{}'.format(int(amount))).get('sail')
 
 
 class DewiDriver(boatd.DriverABC):
