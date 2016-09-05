@@ -7,6 +7,10 @@ import gps as gpsd
 
 import boatd
 
+max_sail_angle = 70
+winch_value_full_in = 2000
+winch_value_full_out = 1100
+winch_input_range = winch_value_full_in - winch_value_full_out
 
 class Arduino(object):
     '''The arduino and basic communications with devices attached to it'''
@@ -18,7 +22,6 @@ class Arduino(object):
             raise IOError(
                 'Cannot connect to arduino on {} - {}'.format(port, e))
         self._lock = Lock()
-        self.port.readline()
 
     def read_json_line(self):
         '''Return a decoded line'''
@@ -49,18 +52,22 @@ class Arduino(object):
         return self.send_command('r{}'.format(int(amount))).get('rudder')
 
     def set_sail(self, amount):
-        '''Set the sail to an amount between 1000 and 2000'''
+        '''
+        Set the sail to an amount between 1100 (fully out) and 2100 (fully in).
+        '''
         # note: at the time of writing, the arduino only accepts six bytes so
         # this must be converted to an int
         return self.send_command('s{}'.format(int(amount))).get('sail')
 
 
-class DewiDriver(boatd.DriverABC):
+class DewiDriver(boatd.BaseBoatdDriver):
     def __init__(self):
         self.arduino = Arduino('/dev/arduino')
         self.gps = gpsd.gps(mode=gpsd.WATCH_ENABLE)
+        self.previous_lat = 0
+        self.previous_long = 0
 
-    def heading():
+    def heading(self):
         return self.arduino.get_compass()
 
     def wind_direction(self):
@@ -79,12 +86,14 @@ class DewiDriver(boatd.DriverABC):
                     fix = self.gps.next()
                     i += 1
                 else:
-                    return (None, None)
+                    return (self.previous_lat, self.previous_long)
 
+            self.previous_lat = fix.lat
+            self.previous_long = fix.lon
             return (fix.lat, fix.lon)
 
         else:
-            return (None, None)
+            return (self.previous_lat, self.previous_long)
 
     def rudder(self, angle):
         ratio = (1711/22.5) / 8  # ratio of angle:microseconds
@@ -92,7 +101,15 @@ class DewiDriver(boatd.DriverABC):
         self.arduino.set_rudder(amount - 65)
 
     def sail(self, angle):
-        self.arduino.set_sail(angle)
+        angle = abs(angle)
+        # 1000 is difference between the two extremes of winch inputs, 70 is
+        # the maximum angle the sail will move to when the winch is fully
+        # extended. 2100 is the winch value when the sail is full in.
+        
+        # FIXME: angle of 0 cannot be reached, generally around 5 degrees, account for this
+        # FIXME: this is kind of non-linear, so adjust for this at some point
+        amount = -angle*(winch_input_range/max_sail_angle) + winch_value_full_in
+        self.arduino.set_sail(amount)
 
 
 driver = DewiDriver()

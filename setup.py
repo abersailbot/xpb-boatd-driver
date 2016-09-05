@@ -12,5 +12,5 @@ setup(
     license='GPLv3',
     keywords='boat sailing boatd',
     url='https://github.com/abersailbot/dewi-boatd-driver',
-    modules=['dewi_boatd_driver.py'],
+    py_modules=['dewi_boatd_driver'],
 )
