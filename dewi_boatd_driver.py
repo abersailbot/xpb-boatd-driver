@@ -68,10 +68,13 @@ class Arduino(object):
 
 class DewiDriver(boatd.BaseBoatdDriver):
     def __init__(self):
-        self.arduino = Arduino('/dev/arduino')
-        self.gps = gpsd.gps(mode=gpsd.WATCH_ENABLE)
+        self.reconnect()
         self.previous_lat = 0
         self.previous_long = 0
+
+    def reconnect(self):
+        self.arduino = Arduino('/dev/arduino')
+        self.gps = gpsd.gps(mode=gpsd.WATCH_ENABLE)
 
     def heading(self):
         return self.arduino.get_compass()
