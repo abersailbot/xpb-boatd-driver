@@ -2,6 +2,7 @@ from threading import Lock
 
 import json
 import serial
+import time
 
 import gps as gpsd
 
@@ -73,6 +74,8 @@ class DewiDriver(boatd.BaseBoatdDriver):
         self.previous_long = 0
 
     def reconnect(self):
+        # sleep for a little to hope that devices are reset
+        time.sleep(1)
         self.arduino = Arduino('/dev/arduino')
         self.gps = gpsd.gps(mode=gpsd.WATCH_ENABLE)
 
