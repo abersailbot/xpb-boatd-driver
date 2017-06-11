@@ -47,13 +47,8 @@ class Arduino(object):
 
     def get_compass(self):
         '''Return the heading from the compass in degrees'''
-        compass = self.send_command('c').get('compass')
-        if compass > 0:
-                return compass
-        else:
-            except ValueError:
-                print ('error, no data from compass')
-        
+        return self.send_command('c').get('compass')
+
     def get_wind(self):
         return self.send_command('w').get('wind')
 
