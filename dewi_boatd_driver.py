@@ -82,8 +82,8 @@ class DewiDriver(boatd.BaseBoatdDriver):
     def heading(self):
         return self.arduino.get_compass()
 
-    def wind_direction(self):
-        return self.arduino.get_wind()
+    def absolute_wind_direction(self):
+        return (self.heading() - self.arduino.get_wind()) % 360
 
     def wind_speed(self):
         # dewi can't get the wind speed
