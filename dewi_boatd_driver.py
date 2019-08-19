@@ -13,6 +13,7 @@ winch_value_full_in = 2000
 winch_value_full_out = 1100
 winch_input_range = winch_value_full_in - winch_value_full_out
 
+
 class Arduino(object):
     '''The arduino and basic communications with devices attached to it'''
 
@@ -48,7 +49,6 @@ class Arduino(object):
     def get_compass_heading(self):
         '''Return the heading from the compass in degrees'''
         return self.send_command('c').get('compass')
-        
         
     def get_compass_pitch(self):
         '''Return the heading from the compass in degrees'''
@@ -96,7 +96,7 @@ class DewiDriver(boatd.BaseBoatdDriver):
         
     def roll(self):
         return self.arduino.get_compass_roll()
-
+        
     def absolute_wind_direction(self):
         return (self.heading() + self.arduino.get_wind()) % 360
 
