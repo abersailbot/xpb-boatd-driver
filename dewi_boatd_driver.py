@@ -45,9 +45,18 @@ class Arduino(object):
             self.port.write(c + '\n')
             return json.loads(self.port.readline())
 
-    def get_compass(self):
+    def get_compass_heading(self):
         '''Return the heading from the compass in degrees'''
         return self.send_command('c').get('compass')
+        
+        
+    def get_compass_pitch(self):
+        '''Return the heading from the compass in degrees'''
+        return self.send_command('p').get('pitch')
+        
+    def get_compass_roll(self):
+        '''Return the heading from the compass in degrees'''
+        return self.send_command('&').get('roll')
 
     def get_wind(self):
         return self.send_command('w').get('wind')
@@ -80,7 +89,13 @@ class DewiDriver(boatd.BaseBoatdDriver):
         self.gps = gpsd.gps(mode=gpsd.WATCH_ENABLE)
 
     def heading(self):
-        return self.arduino.get_compass()
+        return self.arduino.get_compass_heading()
+        
+    def pitch(self):
+        return self.arduino.get_compass_pitch()
+        
+    def roll(self):
+        return self.arduino.get_compass_roll()
 
     def absolute_wind_direction(self):
         return (self.heading() + self.arduino.get_wind()) % 360
@@ -129,7 +144,9 @@ driver = DewiDriver()
 
 if __name__ == '__main__':
     a = Arduino('/dev/arduino')
-    print a.get_compass()
+    print a.get_compass_heading()
+    print a.get_compass_pitch()
+    print a.get_compass_roll()
     print a.get_wind()
     print a.set_rudder(0)
     print a.set_sail(0)
