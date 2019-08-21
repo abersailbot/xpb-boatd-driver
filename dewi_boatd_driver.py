@@ -9,10 +9,9 @@ import gps as gpsd
 import boatd
 
 max_sail_angle = 70
-winch_value_full_in = 2000
-winch_value_full_out = 1100
+winch_value_full_in = 1800
+winch_value_full_out = 1365
 winch_input_range = winch_value_full_in - winch_value_full_out
-
 
 class Arduino(object):
     '''The arduino and basic communications with devices attached to it'''
@@ -46,17 +45,21 @@ class Arduino(object):
             self.port.write(c + '\n')
             return json.loads(self.port.readline())
 
+
     def get_compass_heading(self):
-        '''Return the heading from the compass in degrees'''
-        return self.send_command('c').get('compass')
-        
+         '''Return the heading from the compass in degrees'''
+         return self.send_command('c').get('compass')
+
     def get_compass_pitch(self):
         '''Return the heading from the compass in degrees'''
         return self.send_command('p').get('pitch')
-        
+
     def get_compass_roll(self):
         '''Return the heading from the compass in degrees'''
         return self.send_command('&').get('roll')
+
+
+
 
     def get_wind(self):
         return self.send_command('w').get('wind')
@@ -89,14 +92,8 @@ class DewiDriver(boatd.BaseBoatdDriver):
         self.gps = gpsd.gps(mode=gpsd.WATCH_ENABLE)
 
     def heading(self):
-        return self.arduino.get_compass_heading()
-        
-    def pitch(self):
-        return self.arduino.get_compass_pitch()
-        
-    def roll(self):
-        return self.arduino.get_compass_roll()
-        
+        return self.arduino.get_compass()
+
     def absolute_wind_direction(self):
         return (self.heading() + self.arduino.get_wind()) % 360
 
@@ -128,14 +125,24 @@ class DewiDriver(boatd.BaseBoatdDriver):
         self.arduino.set_rudder(amount - 65)
 
     def sail(self, angle):
-        angle = abs(angle)
+        new_angle = 70 - abs(angle)
         # 1000 is difference between the two extremes of winch inputs, 70 is
         # the maximum angle the sail will move to when the winch is fully
         # extended. 2100 is the winch value when the sail is full in.
         
         # FIXME: angle of 0 cannot be reached, generally around 5 degrees, account for this
         # FIXME: this is kind of non-linear, so adjust for this at some point
-        amount = -angle*(winch_input_range/max_sail_angle) + winch_value_full_in
+        amount1 = -new_angle*(winch_input_range/max_sail_angle) 
+	amount = amount1 + winch_value_full_in
+
+	if amount < winch_value_full_out:
+	    amount = winch_value_full_out
+	if amount > winch_value_full_in:
+	    amount = winch_value_full_in
+
+	f = open("/tmp/saillog","a")
+	f.write("angle = %d new_angle = %d amount1 = %d sail servo value = %d\n" % (angle, new_angle, amount1, amount))
+	f.close()
         self.arduino.set_sail(amount)
 
 
@@ -144,9 +151,7 @@ driver = DewiDriver()
 
 if __name__ == '__main__':
     a = Arduino('/dev/arduino')
-    print(a.get_compass_heading())
-    print(a.get_compass_pitch())
-    print(a.get_compass_roll())
-    print(a.get_wind())
-    print(a.set_rudder(0))
-    print(a.set_sail(0))
+    print a.get_compass()
+    print a.get_wind()
+    print a.set_rudder(0)
+    print a.set_sail(0)
