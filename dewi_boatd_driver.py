@@ -9,8 +9,8 @@ import gps as gpsd
 import boatd
 
 max_sail_angle = 70
-winch_value_full_in = 2000
-winch_value_full_out = 1100
+winch_value_full_in = 1800
+winch_value_full_out = 1365
 winch_input_range = winch_value_full_in - winch_value_full_out
 
 class Arduino(object):
@@ -113,14 +113,21 @@ class DewiDriver(boatd.BaseBoatdDriver):
         self.arduino.set_rudder(amount - 65)
 
     def sail(self, angle):
-        angle = abs(angle)
+        new_angle = 70 - abs(angle)
         # 1000 is difference between the two extremes of winch inputs, 70 is
         # the maximum angle the sail will move to when the winch is fully
         # extended. 2100 is the winch value when the sail is full in.
-        
+
         # FIXME: angle of 0 cannot be reached, generally around 5 degrees, account for this
         # FIXME: this is kind of non-linear, so adjust for this at some point
-        amount = -angle*(winch_input_range/max_sail_angle) + winch_value_full_in
+        amount1 = -new_angle*(winch_input_range/max_sail_angle) 
+        amount = amount1 + winch_value_full_in
+
+        if amount < winch_value_full_out:
+            amount = winch_value_full_out
+        if amount > winch_value_full_in:
+            amount = winch_value_full_in
+
         self.arduino.set_sail(amount)
 
 
