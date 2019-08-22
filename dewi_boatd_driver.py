@@ -45,9 +45,19 @@ class Arduino(object):
             self.port.write(c + '\n')
             return json.loads(self.port.readline())
 
-    def get_compass(self):
+
+    def get_heading(self):
+         '''Return the heading from the compass in degrees'''
+         return self.send_command('c').get('compass')
+
+    def get_pitch(self):
         '''Return the heading from the compass in degrees'''
-        return self.send_command('c').get('compass')
+        return self.send_command('p').get('pitch')
+
+    def get_roll(self):
+        '''Return the heading from the compass in degrees'''
+        return self.send_command('&').get('roll')
+
 
     def get_wind(self):
         return self.send_command('w').get('wind')
@@ -114,9 +124,9 @@ class DewiDriver(boatd.BaseBoatdDriver):
 
     def sail(self, angle):
         new_angle = 70 - abs(angle)
-        # 1000 is difference between the two extremes of winch inputs, 70 is
+        # winch_input_range is difference between the two extremes of winch inputs, 70 is
         # the maximum angle the sail will move to when the winch is fully
-        # extended. 2100 is the winch value when the sail is full in.
+        # extended. 1800 is the winch value when the sail is full in.
 
         # FIXME: angle of 0 cannot be reached, generally around 5 degrees, account for this
         # FIXME: this is kind of non-linear, so adjust for this at some point
