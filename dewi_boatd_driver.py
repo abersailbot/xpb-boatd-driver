@@ -92,6 +92,21 @@ class DewiDriver(boatd.BaseBoatdDriver):
     def heading(self):
         return self.arduino.get_compass()
 
+    def roll(self):
+        '''get roll in degrees between +/- 180'''
+        return self.arduino.get_roll()
+
+    def pitch(self):
+        '''get pitch in degrees between +/- 180'''
+        return self.arduino.get_pitch()
+
+    def depth(self):
+        '''get depth in metres'''
+        #PUT SONAR CODE HERE!!!
+        #Another thread/class will be needed to read the values in
+        #this is just the interface to boatd
+        return 0
+
     def absolute_wind_direction(self):
         return (self.heading() + self.arduino.get_wind()) % 360
 
