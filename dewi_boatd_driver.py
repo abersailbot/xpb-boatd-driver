@@ -46,7 +46,7 @@ class Arduino(object):
             return json.loads(self.port.readline())
 
 
-    def get_heading(self):
+    def get_compass(self):
          '''Return the heading from the compass in degrees'''
          return self.send_command('c').get('compass')
 
@@ -109,6 +109,9 @@ class DewiDriver(boatd.BaseBoatdDriver):
 
     def absolute_wind_direction(self):
         return (self.heading() + self.arduino.get_wind()) % 360
+
+    def apparent_wind_direction(self):
+        return (self.arduino.get_wind()) % 360
 
     def wind_speed(self):
         # dewi can't get the wind speed
