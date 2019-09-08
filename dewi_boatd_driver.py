@@ -46,19 +46,17 @@ class Arduino(object):
             return json.loads(self.port.readline())
 
 
-    def get_compass_heading(self):
+    def get_compass(self):
          '''Return the heading from the compass in degrees'''
          return self.send_command('c').get('compass')
 
-    def get_compass_pitch(self):
+    def get_pitch(self):
         '''Return the heading from the compass in degrees'''
         return self.send_command('p').get('pitch')
 
-    def get_compass_roll(self):
+    def get_roll(self):
         '''Return the heading from the compass in degrees'''
         return self.send_command('&').get('roll')
-
-
 
 
     def get_wind(self):
@@ -94,8 +92,26 @@ class DewiDriver(boatd.BaseBoatdDriver):
     def heading(self):
         return self.arduino.get_compass()
 
+    def roll(self):
+        '''get roll in degrees between +/- 180'''
+        return self.arduino.get_roll()
+
+    def pitch(self):
+        '''get pitch in degrees between +/- 180'''
+        return self.arduino.get_pitch()
+
+    def depth(self):
+        '''get depth in metres'''
+        #PUT SONAR CODE HERE!!!
+        #Another thread/class will be needed to read the values in
+        #this is just the interface to boatd
+        return 0
+
     def absolute_wind_direction(self):
         return (self.heading() + self.arduino.get_wind()) % 360
+
+    def apparent_wind_direction(self):
+        return (self.arduino.get_wind()) % 360
 
     def wind_speed(self):
         # dewi can't get the wind speed
@@ -126,23 +142,20 @@ class DewiDriver(boatd.BaseBoatdDriver):
 
     def sail(self, angle):
         new_angle = 70 - abs(angle)
-        # 1000 is difference between the two extremes of winch inputs, 70 is
+        # winch_input_range is difference between the two extremes of winch inputs, 70 is
         # the maximum angle the sail will move to when the winch is fully
-        # extended. 2100 is the winch value when the sail is full in.
-        
+        # extended. 1800 is the winch value when the sail is full in.
+
         # FIXME: angle of 0 cannot be reached, generally around 5 degrees, account for this
         # FIXME: this is kind of non-linear, so adjust for this at some point
         amount1 = -new_angle*(winch_input_range/max_sail_angle) 
-	amount = amount1 + winch_value_full_in
+        amount = amount1 + winch_value_full_in
 
-	if amount < winch_value_full_out:
-	    amount = winch_value_full_out
-	if amount > winch_value_full_in:
-	    amount = winch_value_full_in
+        if amount < winch_value_full_out:
+            amount = winch_value_full_out
+        if amount > winch_value_full_in:
+            amount = winch_value_full_in
 
-	f = open("/tmp/saillog","a")
-	f.write("angle = %d new_angle = %d amount1 = %d sail servo value = %d\n" % (angle, new_angle, amount1, amount))
-	f.close()
         self.arduino.set_sail(amount)
 
 
