@@ -3,6 +3,7 @@ from threading import Lock
 import json
 import serial
 import time
+import threading
 
 import gps as gpsd
 
@@ -82,6 +83,8 @@ class DewiDriver(boatd.BaseBoatdDriver):
         self.reconnect()
         self.previous_lat = 0
         self.previous_long = 0
+        depth_thread = threading.Thread(target=read_depth)
+        depth_thread.start()
 
     def reconnect(self):
         # sleep for a little to hope that devices are reset
@@ -100,12 +103,25 @@ class DewiDriver(boatd.BaseBoatdDriver):
         '''get pitch in degrees between +/- 180'''
         return self.arduino.get_pitch()
 
+    def read_depth(self):
+        '''thread to read the depth data from the sonar'''
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect(('localhost', '65432'))
+            while True:
+                data = s.recv(1024)
+
+                print('Depth data:', repr(data))
+
+                split_data = data.split(“,”)
+                # example: $SDDBT,6.6,f,2.0,M,1.1,F
+                self.depth_feet = float(split_data[1])
+                self.depth_metres = float(split_data[3])
+                self.depth_fathoms = float(split_data[5])
+
     def depth(self):
         '''get depth in metres'''
-        #PUT SONAR CODE HERE!!!
-        #Another thread/class will be needed to read the values in
-        #this is just the interface to boatd
-        return 0
+        return self.depth_metres
 
     def absolute_wind_direction(self):
         return (self.heading() + self.arduino.get_wind()) % 360
