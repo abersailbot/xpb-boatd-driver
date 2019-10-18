@@ -78,13 +78,11 @@ class Arduino(object):
         return self.send_command('s{}'.format(int(amount))).get('sail')
 
 
-class DewiDriver(boatd.BaseBoatdDriver):
+class XPBDriver(boatd.BaseBoatdDriver):
     def __init__(self):
         self.reconnect()
         self.previous_lat = 0
         self.previous_long = 0
-        depth_thread = threading.Thread(target=read_depth)
-        depth_thread.start()
 
     def reconnect(self):
         # sleep for a little to hope that devices are reset
@@ -103,22 +101,6 @@ class DewiDriver(boatd.BaseBoatdDriver):
         '''get pitch in degrees between +/- 180'''
         return self.arduino.get_pitch()
 
-    def read_depth(self):
-        '''thread to read the depth data from the sonar'''
-
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect(('localhost', '65432'))
-            while True:
-                data = s.recv(1024)
-
-                print('Depth data:', repr(data))
-
-                split_data = data.split(“,”)
-                # example: $SDDBT,6.6,f,2.0,M,1.1,F
-                self.depth_feet = float(split_data[1])
-                self.depth_metres = float(split_data[3])
-                self.depth_fathoms = float(split_data[5])
-
     def depth(self):
         '''get depth in metres'''
         return self.depth_metres
@@ -130,7 +112,7 @@ class DewiDriver(boatd.BaseBoatdDriver):
         return (self.arduino.get_wind()) % 360
 
     def wind_speed(self):
-        # dewi can't get the wind speed
+        # xpb's can't get the wind speed
         pass
 
     def position(self):
@@ -175,7 +157,7 @@ class DewiDriver(boatd.BaseBoatdDriver):
         self.arduino.set_sail(amount)
 
 
-driver = DewiDriver()
+driver = XPBDriver()
 
 
 if __name__ == '__main__':
