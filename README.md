@@ -1,6 +1,6 @@
-dewi-boatd-driver
+xpb-boatd-driver
 =================
 
-boatd driver for Dewi.
+boatd driver for the eXperimental Polystyrene Boats.
 
 This depends on python-boatd and gpsd.
