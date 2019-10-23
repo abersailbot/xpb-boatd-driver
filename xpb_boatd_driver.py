@@ -162,7 +162,7 @@ driver = XPBDriver()
 
 if __name__ == '__main__':
     a = Arduino('/dev/arduino')
-    print a.get_compass()
-    print a.get_wind()
-    print a.set_rudder(0)
-    print a.set_sail(0)
+    print(a.get_compass())
+    print(a.get_wind())
+    print(a.set_rudder(0))
+    print(a.set_sail(0))
