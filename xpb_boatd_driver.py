@@ -18,6 +18,7 @@ class Arduino(object):
     '''The arduino and basic communications with devices attached to it'''
 
     def __init__(self, port=None, baud=115200):
+
         try:
             self.port = serial.Serial(port, baudrate=baud)
         except Exception as e:
@@ -61,7 +62,7 @@ class Arduino(object):
 
 
     def get_wind(self):
-        return self.send_command('w').get('wind')
+        return 0
 
     def set_rudder(self, amount):
         '''Set the rudder to an amount between 1000 and 2000'''
@@ -87,18 +88,22 @@ class XPBDriver(boatd.BaseBoatdDriver):
     def reconnect(self):
         # sleep for a little to hope that devices are reset
         time.sleep(1)
+        #CHANGEME comment out the next line if you have no arduino
         self.arduino = Arduino('/dev/arduino')
         self.gps = gpsd.gps(mode=gpsd.WATCH_ENABLE)
 
     def heading(self):
+        #CHANGE ME TO READ CMPS12
         return self.arduino.get_compass()
 
     def roll(self):
         '''get roll in degrees between +/- 180'''
+        #CHANGE ME TO READ CMPS12
         return self.arduino.get_roll()
 
     def pitch(self):
         '''get pitch in degrees between +/- 180'''
+        #CHANGE ME TO READ CMPS12
         return self.arduino.get_pitch()
 
     def depth(self):
@@ -106,14 +111,21 @@ class XPBDriver(boatd.BaseBoatdDriver):
         return self.depth_metres
 
     def absolute_wind_direction(self):
-        return (self.heading() + self.arduino.get_wind()) % 360
-
+        '''get the absolute wind in degrees'''
+        #hard coded value, change to the current wind direction
+        return 180
+    
     def apparent_wind_direction(self):
-        return (self.arduino.get_wind()) % 360
+        '''get the wind relative to the boat in degrees'''
+        #calculate apparent wind by subtracing compass heading from the absolute wind direction
+        apparent_wind_dir = (self.absolute_wind_direction() - self.heading()) % 360
+        if apparent_wind_dir < 0:
+            apparent_wind_dir += 360
+        return apparent_wind_dir
 
     def wind_speed(self):
         # xpb's can't get the wind speed
-        pass
+        return 0
 
     def position(self):
         if self.gps.waiting(timeout=2):
@@ -136,25 +148,29 @@ class XPBDriver(boatd.BaseBoatdDriver):
     def rudder(self, angle):
         ratio = (1711/22.5) / 8  # ratio of angle:microseconds
         amount = 1500 + (angle * ratio)
+        #CHANGEME to use a rudder servo connected to the raspberry pi
         self.arduino.set_rudder(amount - 65)
 
     def sail(self, angle):
-        new_angle = 70 - abs(angle)
+        # no sail winch on an XPB
+        
+        #new_angle = 70 - abs(angle)
         # winch_input_range is difference between the two extremes of winch inputs, 70 is
         # the maximum angle the sail will move to when the winch is fully
         # extended. 1800 is the winch value when the sail is full in.
 
         # FIXME: angle of 0 cannot be reached, generally around 5 degrees, account for this
         # FIXME: this is kind of non-linear, so adjust for this at some point
-        amount1 = -new_angle*(winch_input_range/max_sail_angle) 
-        amount = amount1 + winch_value_full_in
+        #amount1 = -new_angle*(winch_input_range/max_sail_angle) 
+        #amount = amount1 + winch_value_full_in
 
-        if amount < winch_value_full_out:
-            amount = winch_value_full_out
-        if amount > winch_value_full_in:
-            amount = winch_value_full_in
+        #if amount < winch_value_full_out:
+        #    amount = winch_value_full_out
+        #if amount > winch_value_full_in:
+        #    amount = winch_value_full_in
 
-        self.arduino.set_sail(amount)
+        #self.arduino.set_sail(amount)
+        pass
 
 
 driver = XPBDriver()
